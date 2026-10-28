@@ -1,0 +1,3 @@
+# Milestone 1 (dataset inspection) only. More are added per milestone.
+pandas>=2.0
+pytest>=8.0
