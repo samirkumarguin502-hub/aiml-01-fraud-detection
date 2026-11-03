@@ -1,0 +1,10 @@
+# Minimal LOCAL Feast config. Not applied or verified in the authoring sandbox (feast not installed).
+project: aiml01_fraud
+registry: data/registry.db
+provider: local
+online_store:
+  type: sqlite
+  path: data/online_store.db
+offline_store:
+  type: file
+entity_key_serialization_version: 3

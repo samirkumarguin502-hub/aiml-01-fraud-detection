@@ -1,0 +1,41 @@
+# Local demo stack: API + dashboard. NOT run in the authoring sandbox (no Docker there).
+# Kafka/Feast/MLflow are intentionally not included; use `python -m streaming api ...` against the published API port.
+services:
+  api:
+    build:
+      context: .
+      args:
+        INSTALL_XGBOOST: ${INSTALL_XGBOOST:-false}
+    image: aiml01-api:local
+    environment:
+      APP_ENV: production
+      DATABASE_URL: sqlite:////data/fraud_platform.db
+      # Path INSIDE the container, e.g. /models/<run_id>/primary . Empty = run without a model (predictions return 503).
+      MODEL_ARTIFACT_DIR: ${CONTAINER_MODEL_DIR:-}
+      ARTIFACT_ROOT: /models
+      CORS_ALLOW_ORIGINS: http://localhost:8080
+      MIN_MONITOR_ROWS: ${MIN_MONITOR_ROWS:-100}
+      RATE_LIMIT_PREDICT_PER_MIN: ${RATE_LIMIT_PREDICT_PER_MIN:-60}
+    volumes:
+      - api-data:/data
+      - ./ml/artifacts:/models:ro
+    ports:
+      - "127.0.0.1:8000:8000"   # loopback only: the API has no authentication
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 15s
+      timeout: 4s
+      retries: 3
+  web:
+    build:
+      context: ./frontend
+    image: aiml01-web:local
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+volumes:
+  api-data:

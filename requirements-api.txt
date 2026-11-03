@@ -1,0 +1,7 @@
+# Backend API dependencies. NOT verified in the authoring sandbox (fastapi/uvicorn not installable there).
+# Check what your .venv-test already has first:  python -m pip list
+# Install only what is missing.  Needs pydantic v2 (>=2.5) and fastapi>=0.110.
+-r requirements.txt
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.5

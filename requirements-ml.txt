@@ -1,0 +1,6 @@
+# Optional ML dependencies (NOT verified in the sandbox used to write this code: no network there).
+# Check what your .venv-test already has first:  python -m pip list
+# Install only what is missing:                  python -m pip install xgboost mlflow
+-r requirements.txt
+xgboost>=2.0
+mlflow>=2.10

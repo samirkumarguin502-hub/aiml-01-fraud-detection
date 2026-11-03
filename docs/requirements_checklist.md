@@ -1,21 +1,50 @@
-# Requirements checklist (status is evidence-based)
-Legend: [ ] not started, [~] partial, [x] done and verified
+# Requirements checklist (status as of 30 Oct 2026)
 
-## Step 1 Dataset and EDA
-- [~] Dataset documentation (`docs/dataset.md`; licence and real stats pending)
-- [~] EDA scripts written and synthetic-tested; **real-data run pending**
-- [~] Missing/duplicate/class-imbalance checks (implemented, not yet run on real data)
-- [ ] Time-based train/val/test split
-- [ ] Leakage prevention decision (balance columns) from real EDA
-- [ ] Reproducible preprocessing
-## Step 2 Features + Feast        [ ]
-## Step 3 XGBoost + MLflow        [ ]
-## Step 4 Graph + PyG GNN         [ ]
-## Step 5 Kafka + FastAPI         [ ]
-## Step 6 Evidently + monitoring  [ ]
-## Step 7 Dashboard + Docker/K8s  [ ]
-## Deliverables: demo, README, diagram, API docs, results, tests, screenshots, presentation, reflection  [ ]
+Legend: **T** = implemented and tested here on synthetic data · **W** = written, never executed · **R** = needs the real dataset/your machine · **-** = not implemented.
 
-## Test evidence
-- 5 unit tests for inspection/report code: passed via a plain-Python runner on 28 Oct 2026 in the
-  assistant's sandbox (pytest was unavailable there). Run `python -m pytest tests -q` locally to confirm.
+## Machine learning
+| Requirement | Status |
+|---|---|
+| PaySim with documented provenance, usage terms | **R**: provenance text exists; licence, access date, SHA-256 and real stats must come from your file (`docs/dataset.md`) |
+| Dataset inspection and EDA | **T** on synthetic CSV; **R** on real data |
+| Leakage-aware features; time-aware split | **T** (balance columns and `isFlaggedFraud` never loaded; strictly-earlier-step history; whole-step split) |
+| XGBoost with imbalance handling | **W** (`scale_pos_weight` from train labels; stub-tested wiring only). scikit-learn GBM/logistic baseline: **T** |
+| Precision, recall, F1, PR-AUC, ROC-AUC, confusion matrix, threshold analysis | **T**. Per-class "classification report" text not produced |
+| Decision threshold + imbalance consequences documented | **T** (`docs/model_limitations.md`, report.md) |
+| MLflow tracking | **W**; the "mlflow missing" fallback is **T** |
+| Same preprocessing in training and inference | **T** (one `FeatureContract`; consistency tests) |
+| No fabricated results; no test-set tuning | enforced in code/tests; **no real metrics exist yet** |
+## Backend
+| FastAPI API, health, validation, schemas, docs | Core logic **T**; HTTP layer **W** |
+| Single + batch CSV prediction | **T** (service level); HTTP **W** |
+| Safe missing-model / malformed input / exception handling; no secrets/paths in responses | **T** (service level); HTTP handlers **W** |
+## Streaming and features
+| Kafka replay/streaming | API-mode replay **T** (fake API); Kafka **W** (fake-client tests, no broker) |
+| Feast | consistency logic **T**; store **W** (never applied) |
+| Evidently drift monitoring | own PSI monitoring **T**; Evidently adapter **W** |
+| PyTorch Geometric fraud rings (optional) | **-** (graph structure + baseline **T**; no GNN; PaySim lacks device/card ids) |
+| Optional pieces identifiable; baseline runs without them | **T** |
+| No claim of real-time production streaming | documented everywhere |
+## Frontend
+| Responsive React dashboard; real API wiring; loading/empty/error/success states; no fake metrics | source **W** (logic + types **T**); never built or rendered |
+## Deployment and security
+| Dockerfile / Compose / Kubernetes examples / CI | **W** (YAML-parsed only) |
+| `.env.example` placeholders; `.gitignore` coverage | **T** |
+| Upload safety, path traversal, size limits, input validation, no debug flags, no hard-coded secrets | **T** (service level) + scan |
+| Authentication/authorization | **-** (documented) |
+## Documentation and delivery
+README, architecture, dataset, testing report, security review, Windows setup, deployment, audit report, demo script, reflection template: done. Presentation numbers and reflection: **R** (yours).
+
+## Pass 6 (real-data workflow)
+| Requirement | Status |
+|---|---|
+| Acquire real PaySim | **R / BLOCKED** (no network here); manual steps in `docs/paysim_provenance.md` |
+| Extended EDA (balance consistency, amount by class, per-step fraud, single-rule diagnostic, plots) | **T** on synthetic; **R** on real data |
+| Leakage-safe features incl. pre-transaction balances; post-transaction set as diagnostic | **T** (feature sets, API/UI aware) |
+| Chronological split with documented boundaries; unusable-split handling | **T** (`ml.splits`, training errors) |
+| XGBoost training with CPU config, hyperparameter flags, validation-only search, timing/memory | **W** for XGBoost (scikit-learn models **T**) |
+| Evaluation: classification report, PR/ROC/confusion/importance (JSON + PNG) | **T** (scikit-learn models) |
+| Artifact with schema, metadata, version, metrics; reload and compare | **T** (scikit-learn models); real artifact **R / BLOCKED** |
+| API/dashboard use the saved artifact's metrics and curves | **T** service level; HTTP/UI **W** |
+| MLflow records dataset reference, config, schema, metrics, duration (no raw data) | **W** |
+| Docs: provenance, EDA, features, training, evaluation, reproducibility, model card, Git workflow | done (data-dependent numbers left blank on purpose) |

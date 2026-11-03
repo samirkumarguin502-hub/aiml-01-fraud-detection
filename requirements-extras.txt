@@ -1,0 +1,8 @@
+# OPTIONAL components (none verified in the authoring sandbox: no network there).
+# Check `python -m pip list` first; install only what you want to try.
+-r requirements.txt
+confluent-kafka>=2.3   # Kafka producer/consumer (streaming/); needs a broker you start yourself
+feast>=0.40            # feature store (feature_repo/)
+pyarrow>=15            # parquet export for Feast
+evidently>=0.4         # optional HTML drift report (python -m monitoring evidently)
+# torch / torch_geometric intentionally NOT listed: no GNN code exists yet.

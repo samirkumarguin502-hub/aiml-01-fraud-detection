@@ -1,3 +1,6 @@
-# Milestone 1 (dataset inspection) only. More are added per milestone.
+# Runtime dependencies for the core pipeline (unpinned lower bounds; verify against your venv).
+# Already present in the sandbox used for this pass: pandas 3.0.2, numpy 2.4.4, scikit-learn 1.8.0.
 pandas>=2.0
-pytest>=8.0
+numpy>=1.26
+scikit-learn>=1.4
+joblib>=1.3
