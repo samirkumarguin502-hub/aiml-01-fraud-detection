@@ -1,0 +1,186 @@
+{
+  "info": {
+    "file_name": "paysim dataset.csv",
+    "file_size_mb": 493.5,
+    "sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b"
+  },
+  "balance": {
+    "definitions": {
+      "orig_balance_error": "newbalanceOrig + amount - oldbalanceOrg (0 when the origin account is debited exactly)",
+      "dest_balance_error": "oldbalanceDest + amount - newbalanceDest (0 when the destination is credited exactly)",
+      "orig_emptied": "oldbalanceOrg > 0 and amount >= oldbalanceOrg (known BEFORE the transaction)",
+      "tolerance": 0.01
+    },
+    "by_class": {
+      "fraud": {
+        "rows": 8213,
+        "share_oldbalanceOrg_zero": 0.00499208571776452,
+        "share_oldbalanceDest_zero": 0.6515280652623889,
+        "share_newbalanceOrig_zero": 0.9805186898818946,
+        "share_newbalanceDest_zero": 0.49811274808230854,
+        "share_orig_emptied": 0.9767441860465116,
+        "share_orig_error_nonzero": 0.005479118470717156,
+        "share_dest_error_nonzero": 0.5649579934250578,
+        "share_dest_is_merchant": 0.0
+      },
+      "non_fraud": {
+        "rows": 6354407,
+        "share_oldbalanceOrg_zero": 0.33085825317767653,
+        "share_oldbalanceDest_zero": 0.4247504133745289,
+        "share_newbalanceOrig_zero": 0.566774051457516,
+        "share_newbalanceDest_zero": 0.38325244196665403,
+        "share_orig_emptied": 0.31106647717088315,
+        "share_orig_error_nonzero": 0.7996244181400405,
+        "share_dest_error_nonzero": 0.6584417711991064,
+        "share_dest_is_merchant": 0.33858312821322273
+      }
+    },
+    "by_type": {
+      "CASH_IN": {
+        "fraud": {
+          "rows": 0
+        },
+        "non_fraud": {
+          "rows": 1399284,
+          "share_oldbalanceOrg_zero": 0.009622063855514678,
+          "share_oldbalanceDest_zero": 0.11689764193687628,
+          "share_newbalanceOrig_zero": 0.0,
+          "share_newbalanceDest_zero": 0.19357828718115835,
+          "share_orig_emptied": 0.3316496150888597,
+          "share_orig_error_nonzero": 1.0,
+          "share_dest_error_nonzero": 1.0,
+          "share_dest_is_merchant": 0.0
+        }
+      },
+      "CASH_OUT": {
+        "fraud": {
+          "rows": 4116,
+          "share_oldbalanceOrg_zero": 0.008989310009718173,
+          "share_oldbalanceDest_zero": 0.30587949465500486,
+          "share_newbalanceOrig_zero": 0.999757045675413,
+          "share_newbalanceDest_zero": 0.005587949465500486,
+          "share_orig_emptied": 0.9907677356656949,
+          "share_orig_error_nonzero": 0.0058309037900874635,
+          "share_dest_error_nonzero": 0.13241010689990282,
+          "share_dest_is_merchant": 0.0
+        },
+        "non_fraud": {
+          "rows": 2233384,
+          "share_oldbalanceOrg_zero": 0.45928599828780003,
+          "share_oldbalanceDest_zero": 0.144591346584376,
+          "share_newbalanceOrig_zero": 0.8870377866054382,
+          "share_newbalanceDest_zero": 0.005105257313565424,
+          "share_orig_emptied": 0.4277526838197104,
+          "share_orig_error_nonzero": 0.8923709491963765,
+          "share_dest_error_nonzero": 0.22695649292732464,
+          "share_dest_is_merchant": 0.0
+        }
+      },
+      "DEBIT": {
+        "fraud": {
+          "rows": 0
+        },
+        "non_fraud": {
+          "rows": 41432,
+          "share_oldbalanceOrg_zero": 0.14862907897277466,
+          "share_oldbalanceDest_zero": 0.0,
+          "share_newbalanceOrig_zero": 0.2844661131492566,
+          "share_newbalanceDest_zero": 0.011295616914462252,
+          "share_orig_emptied": 0.13583703417648194,
+          "share_orig_error_nonzero": 0.3011199073180151,
+          "share_dest_error_nonzero": 0.23245317628885886,
+          "share_dest_is_merchant": 0.0
+        }
+      },
+      "PAYMENT": {
+        "fraud": {
+          "rows": 0
+        },
+        "non_fraud": {
+          "rows": 2151495,
+          "share_oldbalanceOrg_zero": 0.3598637226672616,
+          "share_oldbalanceDest_zero": 1.0,
+          "share_newbalanceOrig_zero": 0.5117948217402318,
+          "share_newbalanceDest_zero": 1.0,
+          "share_orig_emptied": 0.1519310990729702,
+          "share_orig_error_nonzero": 0.5425780678086632,
+          "share_dest_error_nonzero": 1.0,
+          "share_dest_is_merchant": 1.0
+        }
+      },
+      "TRANSFER": {
+        "fraud": {
+          "rows": 4097,
+          "share_oldbalanceOrg_zero": 0.000976324139614352,
+          "share_oldbalanceDest_zero": 0.9987795948254821,
+          "share_newbalanceOrig_zero": 0.9611911154503295,
+          "share_newbalanceDest_zero": 0.992921649987796,
+          "share_orig_emptied": 0.9626556016597511,
+          "share_orig_error_nonzero": 0.005125701732975348,
+          "share_dest_error_nonzero": 0.9995118379301928,
+          "share_dest_is_merchant": 0.0
+        },
+        "non_fraud": {
+          "rows": 528812,
+          "share_oldbalanceOrg_zero": 0.5347439165525745,
+          "share_oldbalanceDest_zero": 0.11543043652564616,
+          "share_newbalanceOrig_zero": 0.9597115799187613,
+          "share_newbalanceDest_zero": 0.002091480526160526,
+          "share_orig_emptied": 0.42496766336618685,
+          "share_orig_error_nonzero": 0.9625689280878649,
+          "share_dest_error_nonzero": 0.2207135995401012,
+          "share_dest_is_merchant": 0.0
+        }
+      }
+    },
+    "single_rule_diagnostic": {
+      "rule": "orig_emptied AND type in {types that contain any fraud in THIS file}",
+      "types_used": [
+        "CASH_OUT",
+        "TRANSFER"
+      ],
+      "tp": 8022,
+      "fp": 1180064,
+      "fn": 191,
+      "precision": 0.006752036468740478,
+      "recall": 0.9767441860465116,
+      "reading": "If precision and recall are both high, one pre-transaction rule explains most fraud: the data generator's pattern, not realistic difficulty. Treat any model that uses balances accordingly."
+    }
+  },
+  "amount": {
+    "fraud": {
+      "count": 8213.0,
+      "mean": 1467967.2991403872,
+      "std": 2404252.947240169,
+      "min": 0.0,
+      "25%": 127091.33,
+      "50%": 441423.44,
+      "75%": 1517771.48,
+      "max": 10000000.0
+    },
+    "non_fraud": {
+      "count": 6354407.0,
+      "mean": 178197.0417274075,
+      "std": 596236.9813471773,
+      "min": 0.01,
+      "25%": 13368.395,
+      "50%": 74684.72,
+      "75%": 208364.76,
+      "max": 92445516.64
+    }
+  },
+  "steps": {
+    "steps": 743,
+    "rows_per_step": {
+      "min": 2,
+      "median": 529.0,
+      "max": 51352
+    },
+    "fraud_per_step": {
+      "min": 0,
+      "median": 10.0,
+      "max": 40
+    },
+    "steps_with_zero_fraud": 2
+  }
+}
