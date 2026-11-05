@@ -8,6 +8,7 @@ spec:
     metadata: { labels: { app: web } }
     spec:
       securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      automountServiceAccountToken: false
       containers:
         - name: web
           image: aiml01-web:local
@@ -15,6 +16,7 @@ spec:
           ports: [{ containerPort: 8080 }]
           securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: ["ALL"] } }
           readinessProbe: { httpGet: { path: /, port: 8080 }, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: /, port: 8080 }, initialDelaySeconds: 10, periodSeconds: 20 }
           resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { cpu: 500m, memory: 256Mi } }
 ---
 apiVersion: v1

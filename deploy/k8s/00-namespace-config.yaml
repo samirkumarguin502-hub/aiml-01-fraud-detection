@@ -12,7 +12,6 @@ data:
   APP_ENV: "production"
   DATABASE_URL: "sqlite:////data/fraud_platform.db"
   ARTIFACT_ROOT: "/models"
-  # Set to /models/<run_id>/primary after copying a trained artifact into the models volume.
-  MODEL_ARTIFACT_DIR: ""
+  MODEL_ARTIFACT_DIR: "/models/pre-balance-full-v2/primary"
   CORS_ALLOW_ORIGINS: "http://localhost:8080"
   RATE_LIMIT_PREDICT_PER_MIN: "60"

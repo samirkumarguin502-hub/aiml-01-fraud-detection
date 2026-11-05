@@ -10,6 +10,7 @@ spec:
     metadata: { labels: { app: api } }
     spec:
       securityContext: { runAsNonRoot: true, runAsUser: 10001, fsGroup: 10001, seccompProfile: { type: RuntimeDefault } }
+      automountServiceAccountToken: false
       containers:
         - name: api
           image: aiml01-api:local

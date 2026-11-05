@@ -5,7 +5,7 @@ services:
     build:
       context: .
       args:
-        INSTALL_XGBOOST: ${INSTALL_XGBOOST:-false}
+        INSTALL_XGBOOST: ${INSTALL_XGBOOST:-true}
     image: aiml01-api:local
     environment:
       APP_ENV: production

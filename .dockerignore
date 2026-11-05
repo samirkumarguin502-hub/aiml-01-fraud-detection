@@ -1,4 +1,4 @@
-.git
+﻿.git
 .github
 .venv
 .venv-test
@@ -10,7 +10,11 @@ venv
 *.pyc
 .pytest_cache
 ml/data/raw
-ml/artifacts
+ml/artifacts/**
+!ml/artifacts/pre-balance-full-v2/
+!ml/artifacts/pre-balance-full-v2/primary/
+!ml/artifacts/pre-balance-full-v2/primary/metadata.json
+!ml/artifacts/pre-balance-full-v2/primary/model.json
 mlruns
 *.db
 streaming_outcomes
