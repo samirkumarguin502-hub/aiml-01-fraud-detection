@@ -1,0 +1,47 @@
+﻿apiVersion: batch/v1
+kind: Job
+metadata:
+  name: model-copy
+  namespace: aiml01
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: model-copy
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 0
+        runAsNonRoot: false
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: model-copy
+          image: aiml01-api:local
+          imagePullPolicy: Never
+          command: ["python", "-c"]
+          args:
+            - |
+              import os, shutil
+              src = "/app/ml/artifacts/pre-balance-full-v2/primary"
+              dst = "/models/pre-balance-full-v2/primary"
+              os.makedirs(os.path.dirname(dst), exist_ok=True)
+              shutil.copytree(src, dst, dirs_exist_ok=True)
+              for root, dirs, files in os.walk(dst):
+                  os.chmod(root, 0o755)
+                  for name in files:
+                      os.chmod(os.path.join(root, name), 0o644)
+              print("MODEL_COPY_SUCCESS", flush=True)
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: aiml01-models

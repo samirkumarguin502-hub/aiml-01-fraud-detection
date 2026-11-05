@@ -1,6 +1,40 @@
-# Local demo stack: API + dashboard. NOT run in the authoring sandbox (no Docker there).
-# Kafka/Feast/MLflow are intentionally not included; use `python -m streaming api ...` against the published API port.
+# AIML-01 local demo stack: API + dashboard + Kafka (KRaft)
+
 services:
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: aiml01-kafka
+    hostname: kafka
+    ports:
+      - "127.0.0.1:9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://127.0.0.1:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
   api:
     build:
       context: .
@@ -10,8 +44,7 @@ services:
     environment:
       APP_ENV: production
       DATABASE_URL: sqlite:////data/fraud_platform.db
-      # Path INSIDE the container, e.g. /models/<run_id>/primary . Empty = run without a model (predictions return 503).
-      MODEL_ARTIFACT_DIR: ${CONTAINER_MODEL_DIR:-}
+      MODEL_ARTIFACT_DIR: /models/pre-balance-full-v2/primary
       ARTIFACT_ROOT: /models
       CORS_ALLOW_ORIGINS: http://localhost:8080
       MIN_MONITOR_ROWS: ${MIN_MONITOR_ROWS:-100}
@@ -20,13 +53,18 @@ services:
       - api-data:/data
       - ./ml/artifacts:/models:ro
     ports:
-      - "127.0.0.1:8000:8000"   # loopback only: the API has no authentication
+      - "127.0.0.1:8000:8000"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"
       interval: 15s
       timeout: 4s
       retries: 3
+
   web:
     build:
       context: ./frontend
@@ -37,5 +75,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     restart: unless-stopped
+
 volumes:
   api-data:
+  kafka-data:
