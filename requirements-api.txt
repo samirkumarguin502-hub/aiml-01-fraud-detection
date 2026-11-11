@@ -5,3 +5,5 @@
 fastapi>=0.110
 uvicorn>=0.29
 pydantic>=2.5
+
+confluent-kafka>=2.6,<3.0

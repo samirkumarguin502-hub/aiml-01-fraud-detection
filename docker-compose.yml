@@ -1,4 +1,4 @@
-# AIML-01 local demo stack: API + dashboard + Kafka (KRaft)
+﻿# AIML-01 local demo stack: API + dashboard + Kafka (KRaft)
 
 services:
   kafka:
@@ -49,9 +49,14 @@ services:
       CORS_ALLOW_ORIGINS: http://localhost:8080
       MIN_MONITOR_ROWS: ${MIN_MONITOR_ROWS:-100}
       RATE_LIMIT_PREDICT_PER_MIN: ${RATE_LIMIT_PREDICT_PER_MIN:-60}
+      API_KEY: ${API_KEY:-}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     volumes:
       - api-data:/data
       - ./ml/artifacts:/models:ro
+      - ./ml/data/raw:/data/raw:ro
     ports:
       - "127.0.0.1:8000:8000"
     restart: unless-stopped

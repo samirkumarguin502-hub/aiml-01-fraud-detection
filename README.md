@@ -3,12 +3,7 @@
 Final-year B.Tech CSE (AI/ML) capstone. CPU-only, Windows-friendly. **Read `docs/final_audit_report.md` first: it states
 exactly what works, what was only written, and what has never been run.**
 
-> **Pass 6 status:** the real-data objective (PaySim -> XGBoost -> artifact -> API -> dashboard) is **BLOCKED in the authoring environment** (no network, no dataset, no xgboost); no real model or metrics exist and no artifact is shipped. The workflow, tools and exact commands are in place and verified on synthetic data: see `docs/windows_setup.md`, `docs/real_training_report.md`.
->
-> **Earlier honest status (30 Oct 2026):** the code base is complete for a local demo, but it has never been run on the real
-> PaySim dataset, the FastAPI routes and React dashboard have never been started/built (the authoring environment had
-> no network), and XGBoost / Kafka / Feast / MLflow / Evidently were never executed. All verified results come from
-> synthetic test fixtures. No model metrics from real data exist yet.
+> **Current verified status:** a user-supplied PaySim-format CSV and existing XGBoost artifacts are present in this workspace. The primary `pre-balance-full-v2` artifact contains recorded validation/test metrics, split boundaries and reload metadata. Optional PyTorch/PyG, Feast, Evidently and Kafka infrastructure are not claimed as installed or deployed merely because integration code exists. See `docs/REMAINING_WORK.md` and `docs/real_training_report.md`.
 
 ## What it does
 Score transactions with a gradient-boosting model, store results in SQLite, and review them in an analyst dashboard

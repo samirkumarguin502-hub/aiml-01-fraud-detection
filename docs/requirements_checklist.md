@@ -8,7 +8,7 @@ Legend: **T** = implemented and tested here on synthetic data · **W** = written
 | PaySim with documented provenance, usage terms | **R**: provenance text exists; licence, access date, SHA-256 and real stats must come from your file (`docs/dataset.md`) |
 | Dataset inspection and EDA | **T** on synthetic CSV; **R** on real data |
 | Leakage-aware features; time-aware split | **T** (balance columns and `isFlaggedFraud` never loaded; strictly-earlier-step history; whole-step split) |
-| XGBoost with imbalance handling | **W** (`scale_pos_weight` from train labels; stub-tested wiring only). scikit-learn GBM/logistic baseline: **T** |
+| XGBoost with imbalance handling | **T** in an existing real-file artifact; `.venv-test` executes the real XGBoost reload path |
 | Precision, recall, F1, PR-AUC, ROC-AUC, confusion matrix, threshold analysis | **T**. Per-class "classification report" text not produced |
 | Decision threshold + imbalance consequences documented | **T** (`docs/model_limitations.md`, report.md) |
 | MLflow tracking | **W**; the "mlflow missing" fallback is **T** |
@@ -22,7 +22,7 @@ Legend: **T** = implemented and tested here on synthetic data · **W** = written
 | Kafka replay/streaming | API-mode replay **T** (fake API); Kafka **W** (fake-client tests, no broker) |
 | Feast | consistency logic **T**; store **W** (never applied) |
 | Evidently drift monitoring | own PSI monitoring **T**; Evidently adapter **W** |
-| PyTorch Geometric fraud rings (optional) | **-** (graph structure + baseline **T**; no GNN; PaySim lacks device/card ids) |
+| PyTorch Geometric fraud rings (optional) | **W/T** (GraphSAGE training path implemented with lazy optional dependencies; package execution not available in `.venv-test`) |
 | Optional pieces identifiable; baseline runs without them | **T** |
 | No claim of real-time production streaming | documented everywhere |
 ## Frontend

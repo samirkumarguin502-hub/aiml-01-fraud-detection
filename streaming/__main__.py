@@ -11,7 +11,9 @@ import threading
 from pathlib import Path
 
 from ml.pipeline.schema import FEATURE_SET_INPUTS, FEATURE_SETS
+
 from streaming.outcomes import OutcomeRecorder
+
 from streaming.replay import (
     ApiSink,
     KafkaSink,
@@ -23,32 +25,68 @@ from streaming.replay import (
 log = logging.getLogger("fraudapp.streaming")
 
 
-def install_signal_handlers(stop: threading.Event) -> None:
+def install_signal_handlers(
+    stop: threading.Event,
+) -> None:
+
     def handler(signum, frame):
-        log.info("Shutdown requested; finishing current record.")
+        log.info(
+            "Shutdown requested; finishing current record."
+        )
         stop.set()
 
-    for sig in (signal.SIGINT, getattr(signal, "SIGTERM", signal.SIGINT)):
+    for sig in (
+        signal.SIGINT,
+        getattr(signal, "SIGTERM", signal.SIGINT),
+    ):
         signal.signal(sig, handler)
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="python -m streaming")
 
-    ap.add_argument("mode", choices=["api", "produce", "consume"])
-    ap.add_argument("--data", help="CSV path (api/produce modes)")
-    ap.add_argument("--nrows", type=int, default=None)
+    ap = argparse.ArgumentParser(
+        prog="python -m streaming"
+    )
+
+    ap.add_argument(
+        "mode",
+        choices=["api", "produce", "consume"],
+    )
+
+    ap.add_argument(
+        "--data",
+        help="CSV path (api/produce modes)",
+    )
+
+    ap.add_argument(
+        "--nrows",
+        type=int,
+        default=None,
+    )
+
     ap.add_argument(
         "--feature-set",
         default="auto",
         choices=("auto",) + FEATURE_SETS,
     )
-    ap.add_argument("--limit", type=int, default=None)
+
+    ap.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+    )
+
     ap.add_argument(
         "--speed",
         type=float,
-        default=float(os.environ.get("REPLAY_SPEED_MULTIPLIER", "0")),
+        default=float(
+            os.environ.get(
+                "REPLAY_SPEED_MULTIPLIER",
+                "0",
+            )
+        ),
     )
+
     ap.add_argument(
         "--api-url",
         default=os.environ.get(
@@ -56,8 +94,19 @@ def main(argv=None) -> int:
             "http://127.0.0.1:8000/api/v1",
         ),
     )
-    ap.add_argument("--api-mode", choices=["single", "batch"], default="single")
-    ap.add_argument("--batch-size", type=int, default=200)
+
+    ap.add_argument(
+        "--api-mode",
+        choices=["single", "batch"],
+        default="single",
+    )
+
+    ap.add_argument(
+        "--batch-size",
+        type=int,
+        default=200,
+    )
+
     ap.add_argument(
         "--bootstrap",
         default=os.environ.get(
@@ -65,14 +114,26 @@ def main(argv=None) -> int:
             "127.0.0.1:9094",
         ),
     )
+
     ap.add_argument(
         "--topic",
-        default=os.environ.get("KAFKA_TOPIC", "transactions"),
+        default=os.environ.get(
+            "KAFKA_TOPIC",
+            "transactions",
+        ),
     )
-    ap.add_argument("--group", default="aiml01-consumer")
+
+    ap.add_argument(
+        "--group",
+        default="aiml01-consumer",
+    )
+
     ap.add_argument(
         "--outcomes-dir",
-        default=os.environ.get("STREAM_OUTCOMES_DIR", "streaming_outcomes"),
+        default=os.environ.get(
+            "STREAM_OUTCOMES_DIR",
+            "streaming_outcomes",
+        ),
     )
 
     a = ap.parse_args(argv)
@@ -82,39 +143,121 @@ def main(argv=None) -> int:
         format="%(asctime)s %(levelname)s %(message)s",
     )
 
+    if a.limit is not None and a.limit < 0:
+        ap.error("--limit must be zero or greater")
+
+    if a.nrows is not None and a.nrows < 0:
+        ap.error("--nrows must be zero or greater")
+
+    if a.batch_size <= 0:
+        ap.error("--batch-size must be greater than zero")
+
+    if a.speed < 0:
+        ap.error("--speed cannot be negative")
+
     stop = threading.Event()
+
     install_signal_handlers(stop)
 
-    rec = OutcomeRecorder(Path(a.outcomes_dir), a.mode)
+    rec = OutcomeRecorder(
+        Path(a.outcomes_dir),
+        a.mode,
+    )
 
     try:
+
+        # --------------------------------------------------
+        # API REPLAY / KAFKA PRODUCTION
+        # --------------------------------------------------
+
         if a.mode in ("api", "produce"):
+
             if not a.data:
-                print("ERROR: --data is required", file=sys.stderr)
+                print(
+                    "ERROR: --data is required",
+                    file=sys.stderr,
+                )
                 return 2
 
             sink = (
-                ApiSink(a.api_url, rec, stop=stop)
+                ApiSink(
+                    a.api_url,
+                    rec,
+                    stop=stop,
+                )
                 if a.mode == "api"
                 else None
             )
 
+            # Determine the required model input fields.
+
             if a.feature_set != "auto":
-                fields = tuple(FEATURE_SET_INPUTS[a.feature_set])
+
+                fields = tuple(
+                    FEATURE_SET_INPUTS[a.feature_set]
+                )
+
             elif sink is not None:
+
                 fields = sink.discover_fields()
+
             else:
-                fields = tuple(FEATURE_SET_INPUTS["base"])
+
+                fields = tuple(
+                    FEATURE_SET_INPUTS["base"]
+                )
 
             if sink is not None:
                 sink.fields = fields
 
-            log.info("Sending fields: %s", ", ".join(fields))
+            log.info(
+                "Sending fields: %s",
+                ", ".join(fields),
+            )
 
-            rows = load_rows(a.data, a.nrows, fields)
+            # --------------------------------------------------
+            # IMPORTANT PERFORMANCE FIX
+            # Apply --limit BEFORE loading the CSV.
+            # --------------------------------------------------
+
+            row_cap = a.nrows
+
+            if a.limit is not None:
+
+                row_cap = (
+                    a.limit
+                    if row_cap is None
+                    else min(row_cap, a.limit)
+                )
+
+            log.info(
+                "CSV row loading limit: %s",
+                (
+                    row_cap
+                    if row_cap is not None
+                    else "entire dataset"
+                ),
+            )
+
+            rows = load_rows(
+                a.data,
+                row_cap,
+                fields,
+            )
+
+            log.info(
+                "Loaded %d transaction rows.",
+                len(rows),
+            )
+
+            # --------------------------------------------------
+            # API MODE
+            # --------------------------------------------------
 
             if a.mode == "api":
+
                 if a.api_mode == "single":
+
                     n = replay(
                         rows,
                         sink.send_one,
@@ -122,16 +265,25 @@ def main(argv=None) -> int:
                         stop=stop,
                         limit=a.limit,
                     )
+
                 else:
+
                     buffer = []
                     start = 0
 
                     def emit(row, seq):
+
                         nonlocal start
+
                         buffer.append(row)
 
                         if len(buffer) >= a.batch_size:
-                            sink.send_batch(buffer[:], start)
+
+                            sink.send_batch(
+                                buffer[:],
+                                start,
+                            )
+
                             start += len(buffer)
                             buffer.clear()
 
@@ -144,14 +296,32 @@ def main(argv=None) -> int:
                     )
 
                     if buffer:
-                        sink.send_batch(buffer, start)
+                        sink.send_batch(
+                            buffer,
+                            start,
+                        )
+
+            # --------------------------------------------------
+            # KAFKA PRODUCER MODE
+            # --------------------------------------------------
 
             else:
+
                 kafka_sink = KafkaSink(
                     a.bootstrap,
                     a.topic,
                     rec,
                     fields=fields,
+                )
+
+                log.info(
+                    "Kafka bootstrap: %s",
+                    a.bootstrap,
+                )
+
+                log.info(
+                    "Kafka topic: %s",
+                    a.topic,
                 )
 
                 n = replay(
@@ -164,16 +334,27 @@ def main(argv=None) -> int:
 
                 kafka_sink.flush()
 
-            log.info("Emitted %d rows", n)
+            log.info(
+                "Emitted %d rows.",
+                n,
+            )
+
+        # --------------------------------------------------
+        # KAFKA CONSUMER MODE
+        # --------------------------------------------------
 
         else:
+
             try:
                 from confluent_kafka import Consumer
+
             except ImportError:
+
                 print(
                     "ERROR: confluent-kafka is not installed.",
                     file=sys.stderr,
                 )
+
                 return 2
 
             consumer = Consumer(
@@ -188,21 +369,49 @@ def main(argv=None) -> int:
             consumer.subscribe([a.topic])
 
             try:
-                csink = ApiSink(a.api_url, rec, stop=stop)
+
+                csink = ApiSink(
+                    a.api_url,
+                    rec,
+                    stop=stop,
+                )
 
                 if a.feature_set != "auto":
+
                     csink.fields = tuple(
                         FEATURE_SET_INPUTS[a.feature_set]
                     )
+
                 else:
+
                     csink.discover_fields()
 
-                log.info("Kafka consumer started.")
-                log.info("Topic: %s", a.topic)
-                log.info("API endpoint: %s", a.api_url)
+                log.info(
+                    "Kafka consumer started."
+                )
+
+                log.info(
+                    "Kafka bootstrap: %s",
+                    a.bootstrap,
+                )
+
+                log.info(
+                    "Topic: %s",
+                    a.topic,
+                )
+
+                log.info(
+                    "API endpoint: %s",
+                    a.api_url,
+                )
+
                 log.info(
                     "Maximum messages: %s",
-                    a.limit if a.limit is not None else "unlimited",
+                    (
+                        a.limit
+                        if a.limit is not None
+                        else "unlimited"
+                    ),
                 )
 
                 handled = consume_loop(
@@ -213,21 +422,32 @@ def main(argv=None) -> int:
                     max_messages=a.limit,
                 )
 
-                log.info("Consumer handled %d messages.", handled)
+                log.info(
+                    "Consumer handled %d messages.",
+                    handled,
+                )
 
             finally:
                 consumer.close()
 
     except Exception as exc:
-        log.exception("Streaming operation failed.")
+
+        log.exception(
+            "Streaming operation failed."
+        )
+
         print(
             f"ERROR: {type(exc).__name__}: {exc}",
             file=sys.stderr,
         )
+
         return 2
 
     finally:
-        print(rec.close())
+
+        print(
+            rec.close()
+        )
 
     return 0
 

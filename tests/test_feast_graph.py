@@ -78,9 +78,9 @@ def test_feast_optional_when_missing():
 
 
 # ---- graph ----
-def test_graph_status_never_claims_gnn():
+def test_graph_status_reports_optional_gnn():
     s = graph_status()
-    assert "not implemented" in s["gnn_training"] and s["core_demo_requires_graph"] is False
+    assert "optional CPU PyG" in s["gnn_training"] and s["core_demo_requires_graph"] is False
     assert isinstance(s["torch_geometric_installed"], bool)
 
 

@@ -19,7 +19,8 @@ from ml.pipeline.features import FORBIDDEN_FEATURE_COLUMNS  # noqa: E402
 from ml.pipeline.model_io import ArtifactError, load_artifact  # noqa: E402
 from ml.pipeline.models import MissingDependencyError, ScoreModel  # noqa: E402
 from ml.pipeline.schema import SchemaError  # noqa: E402
-from ml.train import DatasetError, TrainingError, load_dataset, main, run_training  # noqa: E402
+from ml.train import (DatasetError, TrainingError, load_dataset, log_to_mlflow, main,  # noqa: E402
+                      run_training)
 
 FAST = {"max_iter": 40}
 
@@ -87,6 +88,58 @@ def test_training_is_reproducible_for_same_seed(tmp_path):
     a, b = train(tmp_path, run_id="a"), train(tmp_path, run_id="b")
     assert np.array_equal(a["_test_scores"]["primary"], b["_test_scores"]["primary"])
     assert a["models"]["primary"]["test"] == b["models"]["primary"]["test"]
+
+
+def test_mlflow_fake_logs_metadata_before_artifacts(tmp_path, monkeypatch):
+    state = {"params": {}, "metrics": {}, "artifacts": [], "tags": {}}
+
+    class Info:
+        run_id = "fake-run-123"
+        artifact_uri = "file:///fake-artifacts"
+
+    class Run:
+        info = Info()
+
+    class FakeMLflow(types.ModuleType):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    mlflow = FakeMLflow("mlflow")
+    mlflow.set_tracking_uri = lambda uri: state.setdefault("tracking_uri", uri)
+    mlflow.set_experiment = lambda name: state.setdefault("experiment", name)
+    mlflow.set_tags = lambda tags: state["tags"].update(tags)
+    mlflow.log_params = lambda params: state["params"].update(params)
+    mlflow.log_metrics = lambda metrics: state["metrics"].update(metrics)
+    mlflow.log_artifacts = lambda path: state["artifacts"].append(Path(path))
+    mlflow.active_run = lambda: Run()
+    mlflow.start_run = lambda run_name=None: FakeRun()
+
+    class FakeRun:
+        def __enter__(self):
+            return Run()
+
+        def __exit__(self, *args):
+            return False
+
+    mlflow.start_run = lambda run_name=None: FakeRun()
+    monkeypatch.setitem(sys.modules, "mlflow", mlflow)
+
+    summary = train(tmp_path, run_id="mlflow-test")
+    run_dir = Path(summary["run_dir"])
+    summary["mlflow"] = {"status": "pending"}
+    result = log_to_mlflow(summary, run_dir)
+
+    assert result["status"] == "logged"
+    assert result["run_id"] == "fake-run-123"
+    assert state["experiment"] == "aiml-01-fraud"
+    assert state["params"]["feature_set"] == summary["feature_set"]
+    assert state["tags"]["project"] == "aiml-01-fraud-detection"
+    assert state["artifacts"] == [run_dir]
+    logged_summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+    assert logged_summary["mlflow"]["status"] == "logged"
 
 
 def test_time_split_recorded_and_ordered(tmp_path):

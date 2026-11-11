@@ -1,9 +1,9 @@
 # Real training report
 
-## Status: NOT TRAINED ON REAL DATA (BLOCKED)
-No real PaySim run exists. The authoring environment had no network (the dataset could not be obtained), and neither XGBoost nor MLflow was installed
-there. Everything below is a **template to complete from your own run**; no number in this file is a result. All training code was exercised only
-on synthetic fixtures (`docs/testing_report.md`), where the planted pattern makes every model look perfect.
+## Status: EXISTING REAL-FILE XGBOOST ARTIFACT VERIFIED FROM METADATA
+The workspace contains a user-supplied PaySim-format CSV and the `pre-balance-full-v2` XGBoost artifact. Its provenance label states
+`user-supplied file paysim dataset.csv (provenance unverified)`, so external dataset provenance and licence still require independent verification.
+Do not use the recorded metrics as proof of a verified PaySim download or a replayable retraining run.
 
 ## What to run (Windows; details in `docs/windows_setup.md`)
 1. `& $py -m ml.eda.analyze` then `& $py -m ml.splits --data <csv>` (all splits must be usable).
@@ -16,18 +16,17 @@ Do not start the full run before step 2 has finished and you have read its repor
 ## Fill-in record (copy exactly from `report.md` / `summary.json`; leave blank until you have a run)
 | Item | Value |
 |---|---|
-| Run id / date | |
-| Dataset file, size, SHA-256, rows used (`--nrows`?) | |
-| Feature set and number of features | |
-| Split boundaries (steps) and rows: train / validation / test | |
-| Fraud rows and rate per split | |
-| Model, seed, hyperparameters (incl. `scale_pos_weight`, best iteration) | |
+| Run id / date | `pre-balance-full-v2` / 2026-11-03T18:04:24Z |
+| Dataset file and SHA-256 | `paysim dataset.csv`; dataset SHA-256 `16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b` |
+| Feature set and number of features | `pre_balance`; 20 engineered feature names |
+| Split boundaries | Train through step 445; validation through step 594; test starts after step 594 |
+| Model, seed, hyperparameters | XGBoost; seed 42; 100 estimators; depth 6; learning rate 0.1; best iteration 93; scale_pos_weight 1199.5066906331137 |
 | Search used? trials and chosen parameters | |
 | Training seconds, peak memory MB, CPUs | |
 | Operating threshold and the rule that chose it (validation only) | |
-| Validation: PR-AUC, precision, recall, F1 | |
-| Test (once): PR-AUC, ROC-AUC, precision, recall, F1 | |
-| Test confusion matrix: TP / FP / FN / TN | |
+| Validation: PR-AUC, precision, recall, F1 | 0.9966008434643729; 0.9411764705882353; 1.0; 0.9696969696969697 |
+| Test (once): PR-AUC, ROC-AUC, precision, recall, F1 | 0.9977122034905092; 0.9999701114127524; 0.9694656488549618; 0.998186215235792; 0.9836163240988979 |
+| Test confusion matrix: TP / FP / FN / TN | 1651 / 52 / 3 / 121874 |
 | Baseline (logistic regression) test PR-AUC for comparison | |
 | Reload check result (max abs difference) | |
 | MLflow run id (if used) | |

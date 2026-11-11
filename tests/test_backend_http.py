@@ -122,6 +122,17 @@ def test_cors_allows_only_configured_origins(tmp_path):
     assert "access-control-allow-origin" not in bad.headers
 
 
+def test_optional_api_key_is_required_only_when_configured(tmp_path):
+    c = client(tmp_path, True, api_key="secret-key")
+    assert c.get("/api/v1/health").status_code == 200
+    assert c.get("/api/v1/ready").status_code == 200
+    denied = c.post("/api/v1/predict", json=GOOD)
+    assert denied.status_code == 401 and err(denied)["code"] == "unauthorized"
+    assert denied.headers["www-authenticate"] == "Bearer"
+    allowed = c.post("/api/v1/predict", json=GOOD, headers={"X-API-Key": "secret-key"})
+    assert allowed.status_code == 200
+
+
 def test_cases_feedback_alerts_and_pagination_over_http(tmp_path):
     c = client(tmp_path, True)
     c.post("/api/v1/predict/batch", content=make_synthetic(10, 20).to_csv(index=False).encode(),

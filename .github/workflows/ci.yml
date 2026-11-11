@@ -16,9 +16,8 @@ jobs:
       - run: python -m compileall -q backend ml monitoring streaming tests
       - run: python -m pytest -q   # synthetic fixtures only; no dataset is needed or used
   python-xgboost:
-    # Exercises the real XGBoost code path (skipped in the main job). Non-blocking until it has been seen to pass.
+    # Exercises the real XGBoost code path.
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -1,7 +1,8 @@
 # Graph analysis (optional)
 
-Status: construction, structural analysis and a leak-free baseline exist and are tested on synthetic data. **No GNN is
-implemented or trained**, PyTorch / PyTorch Geometric are not required, and nothing has run on the real dataset.
+Status: construction, structural analysis, a leak-free baseline and an optional CPU-only GraphSAGE training path exist.
+PyTorch and PyTorch Geometric are optional dependencies and are not required by the core platform. The optional path has
+not been run on real PaySim in this workspace.
 
 ## What the data supports
 PaySim has only sender `nameOrig`, receiver `nameDest` (merchant ids start with `M`) and `step`. So the only relationship is
@@ -15,6 +16,8 @@ built and no fraud rings are asserted. If another dataset has such columns they 
 - Causal receiver features `dest_prev_txn_count` and `dest_prev_unique_senders` (strictly earlier steps only).
 - `evaluate_graph_baseline`: ranking quality (PR-AUC / ROC-AUC vs prevalence) of those raw features on the same time-split
   **test** range the tabular model uses, with nothing fitted on test.
+- `python -m ml.graph.analyze --data <csv> --train-gnn --gnn-epochs 100 [--gnn-out <model.pt>]` trains optional CPU GraphSAGE.
+  Training edges are restricted to the chronological training range; validation/test node scores do not add graph edges.
 
 ## Not done / how to continue
 A GNN would need an edge-classification setup (labels are per transaction), a time-respecting neighbour sampler, and a

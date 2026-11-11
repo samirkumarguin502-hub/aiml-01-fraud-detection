@@ -15,6 +15,14 @@ export function makeApi(c: Client) {
   const listQuery = (p: ListParams) => q({ page: p.page, page_size: p.pageSize, sort: p.sort, order: p.order, flagged: p.flagged, type: p.type, source: p.source, case_status: p.caseStatus, min_score: p.minScore, max_score: p.maxScore });
   const raw = (v: unknown) => v;
   return {
+    login: (username: string, password: string) =>
+      c.request("/auth/login", raw, {
+        method: "POST",
+        json: { username, password },
+      }),
+    users: (s?: Sig) => c.request("/users", raw, sig(s)),
+    createUser: (username: string, password: string, role: "admin" | "analyst") =>
+      c.request("/users", raw, { method: "POST", json: { username, password, role } }),
     health: (s?: Sig) => c.request("/health", parseHealth, sig(s)),
     ready: (s?: Sig) => c.request("/ready", parseReady, { allowStatus: [503], ...sig(s) }),
     model: (s?: Sig) => c.request("/model", parseModelInfo, sig(s)),

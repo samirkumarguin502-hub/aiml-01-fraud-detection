@@ -1,4 +1,4 @@
-import { useApi } from "../api-context.tsx";
+import { useApi, useAuth } from "../api-context.tsx";
 import { PageHead } from "../components/PageHead.tsx";
 import { RetrainPanel } from "../components/RetrainPanel.tsx";
 import { Async, Badge, Banner, Card, EmptyState, Stat } from "../components/ui.tsx";
@@ -17,6 +17,7 @@ function Status({ r }: { r: MonitoringReport }) {
 
 export function Monitoring() {
   const api = useApi();
+  const { user } = useAuth();
   const [s, reload] = useAsync((sig) => api.monitoring(sig), []);
   return (
     <>
@@ -48,7 +49,13 @@ export function Monitoring() {
           </Card>
           <Card title="Optional Evidently report"><p className="small muted">The dashboard uses the platform's own PSI monitoring. An Evidently HTML report can be produced offline with <span className="mono">python -m monitoring evidently</span> when Evidently is installed; it is not generated here. Report generated {fmtDate(r.generated_utc)}.</p></Card>
           <Banner tone="info" title="Drift never swaps the model">{r.retraining_note}</Banner>
-          <RetrainPanel />
+          {user?.role === "admin" ? (
+            <RetrainPanel />
+          ) : (
+            <Banner tone="info" title="Admin access required">
+              Retraining workflow is restricted to administrators. Drift monitoring and performance metrics remain available to analysts.
+            </Banner>
+          )}
         </div>
       )}</Async>
     </>

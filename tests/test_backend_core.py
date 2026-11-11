@@ -40,7 +40,8 @@ def trained_primary() -> Path:
 
 
 def make_service(tmp_path, model_dir=None, **over) -> FraudService:
-    s = Settings(database_path=tmp_path / "t.db", model_dir=model_dir, **over)
+    s = Settings(database_path=tmp_path / "t.db", model_dir=model_dir,
+                 outcomes_dir=tmp_path / "streaming_outcomes", **over)
     repo = Repository(s.database_path)
     repo.init_schema()
     m = ModelService(s.model_dir)
@@ -72,7 +73,7 @@ def test_settings_reject_bad_values():
 
 
 def test_settings_from_env_values():
-    s = Settings.from_env({"APP_ENV": "production", "CORS_ALLOW_ORIGINS": "https://a.example, https://b.example",
+    s = Settings.from_env({"APP_ENV": "production", "API_KEY": "test-only-key", "CORS_ALLOW_ORIGINS": "https://a.example, https://b.example",
                            "MODEL_ARTIFACT_DIR": "x/y", "MAX_CSV_ROWS": "10", "DATABASE_URL": "sqlite:///./z.db"})
     assert s.is_production and s.cors_origins == ("https://a.example", "https://b.example")
     assert s.max_csv_rows == 10 and s.model_dir == Path("x/y")

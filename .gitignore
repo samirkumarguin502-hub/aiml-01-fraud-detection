@@ -50,3 +50,7 @@ Thumbs.db
 models/
 artifacts/
 reports/generated/
+# Environment secrets
+.env
+.env.*
+!.env.example

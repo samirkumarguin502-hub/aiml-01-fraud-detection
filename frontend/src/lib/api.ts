@@ -9,7 +9,7 @@ export class NetworkError extends Error {
   constructor(message = "The API is unreachable. Is the backend running?") { super(message); this.name = "NetworkError"; }
 }
 
-export interface ClientOptions { baseUrl: string; fetchImpl?: typeof fetch; timeoutMs?: number }
+export interface ClientOptions { baseUrl: string; fetchImpl?: typeof fetch; timeoutMs?: number; getToken?: () => string | null }
 export interface RequestOptions { method?: "GET" | "POST" | "PUT" | "PATCH"; json?: unknown; body?: string; contentType?: string; allowStatus?: number[]; signal?: AbortSignal }
 
 function errorFrom(status: number, data: unknown): ApiError {
@@ -20,7 +20,7 @@ function errorFrom(status: number, data: unknown): ApiError {
   return new ApiError(status, code, message, typeof e?.request_id === "string" ? e.request_id : undefined, e?.details);
 }
 
-export function createClient({ baseUrl, fetchImpl, timeoutMs = 15000 }: ClientOptions) {
+export function createClient({ baseUrl, fetchImpl, timeoutMs = 15000, getToken }: ClientOptions) {
   const base = baseUrl.replace(/\/+$/, "");
   async function request<T>(path: string, parse: (v: unknown) => T, opts: RequestOptions = {}): Promise<T> {
     const doFetch = fetchImpl ?? fetch;
@@ -29,6 +29,8 @@ export function createClient({ baseUrl, fetchImpl, timeoutMs = 15000 }: ClientOp
     let callerAborted = false;
     opts.signal?.addEventListener("abort", () => { callerAborted = true; ctrl.abort(); }, { once: true });
     const headers: Record<string, string> = { Accept: "application/json" };
+    const token = getToken?.();
+    if (token) headers.Authorization = `Bearer ${token}`;
     let body: string | undefined;
     if (opts.json !== undefined) { headers["Content-Type"] = "application/json"; body = JSON.stringify(opts.json); }
     else if (opts.body !== undefined) { headers["Content-Type"] = opts.contentType ?? "text/plain"; body = opts.body; }
